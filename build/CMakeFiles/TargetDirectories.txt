@@ -1,0 +1,4 @@
+/home/nvidia/dev/zed2lcm/build/CMakeFiles/rebuild_cache.dir
+/home/nvidia/dev/zed2lcm/build/CMakeFiles/edit_cache.dir
+/home/nvidia/dev/zed2lcm/build/CMakeFiles/cloud_viewer.dir
+/home/nvidia/dev/zed2lcm/build/CMakeFiles/zed2lcm.dir

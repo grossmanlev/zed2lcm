@@ -8,6 +8,9 @@
 #include <sl/Camera.hpp>
 #include <lcm/lcm-cpp.hpp>
 
+#include <vector>
+
+#include "bot_core/pointcloud_t.hpp"
 #include "bot_core/pointcloud2_t.hpp"
 
 using namespace sl;
@@ -91,15 +94,15 @@ void fromPCL(const pcl::PCLPointField &pcl_pf, bot_core::pointfield_t &pf)
 	pf.count = pcl_pf.count;
 }
 
-void fromPCL(const std::vector<pcl::PCLPointField> &pcl_pfs, std::vector<bot_core::pointfield_t> &pfs)
-{
-	pfs.resize(pcl_pfs.size());
-	std::vector<pcl::PCLPointField>::const_iterator it = pcl_pfs.begin();
-	int i = 0;
-	for(; it != pcl_pfs.end(); ++it, ++i) {
-		fromPCL(*(it), pfs[i]);
-	}
-}
+//void fromPCL(const std::vector<pcl::PCLPointField> &pcl_pfs, std::vector<bot_core::pointfield_t> &pfs)
+//{
+//	pfs.resize(pcl_pfs.size());
+//	std::vector<pcl::PCLPointField>::const_iterator it = pcl_pfs.begin();
+//	int i = 0;
+//	for(; it != pcl_pfs.end(); ++it, ++i) {
+//		fromPCL(*(it), pfs[i]);
+//	}
+//}
 
 
 void startZED() {
@@ -108,6 +111,9 @@ void startZED() {
 }
 
 void run() {
+	lcm::LCM new_lcm;
+	if(!new_lcm.good())
+		return;	
 	while(!quit) {
 		if(zed.grab() == SUCCESS) {
 			zed.retrieveMeasure(cloud, MEASURE_XYZBGRA, MEM_CPU, width, height);
@@ -116,53 +122,76 @@ void run() {
 			point_cloud.height = height;
 			int size = width*height;
 			point_cloud.points.resize(size);
-
+			
+			bot_core::pointcloud_t out;
+			out.seq = 0;
+			
 			sl::Vector4<float>* cpu_cloud = cloud.getPtr<sl::float4>();
 			for(int i = 0; i < size; i++) {
-				point_cloud.points[i].x = cpu_cloud[i][2];
-				point_cloud.points[i].y = -cpu_cloud[i][0];
-				point_cloud.points[i].z = -cpu_cloud[i][1];
-				point_cloud.points[i].rgb = cpu_cloud[i][3];
+				//point_cloud.points[i].x = cpu_cloud[i][2];
+				//point_cloud.points[i].y = -cpu_cloud[i][0];
+				//point_cloud.points[i].z = -cpu_cloud[i][1];
+				//point_cloud.points[i].rgb = cpu_cloud[i][3];
+				out.points.push_back(std::vector<float>{
+					cpu_cloud[i][2],
+					-cpu_cloud[i][0],
+					-cpu_cloud[i][1]});
+				std::vector<float> channels = {};
+				out.channels.push_back(channels);	
 			}
-			pcl::PCLPointCloud2 pcl_pc2;
-			pcl::toPCLPointCloud2(point_cloud, pcl_pc2);
-
-			printf("%d, %d\n", pcl_pc2.height, pcl_pc2.width);
-
-
-			bot_core::pointcloud2_t pc2;
+			out.n_points = out.points.size();
+			out.n_channels = 0;
+			new_lcm.publish("DRAKE_POINTCLOUD_TEST", &out);
+			printf("Published\n");
+	
 			
-			// header	
-			pc2.seq = pcl_pc2.header.seq;
-			pc2.frame_id = pcl_pc2.header.frame_id;
-			// time????
-
-		
-			pc2.height = pcl_pc2.height;
-			pc2.width = pcl_pc2.width;
 			
-			// fields
-			fromPCL(pcl_pc2.fields, pc2.fields);
+			
+			//pcl::PCLPointCloud2 pcl_pc2
+			//pcl::toPCLPointCloud2(point_cloud, pcl_pc2);
 
+			//printf("%d, %d\n", pcl_pc2.height, pcl_pc2.width);
 
-			pc2.is_bigendian = pcl_pc2.is_bigendian;
-			pc2.point_step = pcl_pc2.point_step;
-			pc2.row_step = pcl_pc2.row_step;
-			pc2.row_step = pcl_pc2.row_step;
-			pc2.data = pcl_pc2.data;
+//			bot_core::pointcloud2_t pc2;
+//			
+//			// header	
+//			pc2.seq = pcl_pc2.header.seq;
+//			pc2.frame_id = pcl_pc2.header.frame_id;
+//			// time????
+//		
+//			pc2.height = pcl_pc2.height;
+//			pc2.width = pcl_pc2.width;
+//			
+//			// fields
+//			//fromPCL(pcl_pc2.fields, pc2.fields);
+//			pc2.fields.resize(pcl_pc2.fields.size());
+//			std::vector<pcl::PCLPointField>::const_iterator it = pcl_pc2.fields.begin();
+//			int i = 0;
+//			for(; it != pcl_pc2.fields.end(); ++it, ++i) {
+//				pc2.fields[i].name = it->name;
+//				pc2.fields[i].offset = it->offset;
+//				pc2.fields[i].datatype = it->datatype;
+//				pc2.fields[i].count = it->count;		
+//				//fromPCL(*(it), pc2.fields[i]);
+//			}
 
-			mlcm.publish("Pointcloud", &pc2);
+//			pc2.is_bigendian = pcl_pc2.is_bigendian;
+//			pc2.point_step = pcl_pc2.point_step;
+//			pc2.row_step = pcl_pc2.row_step;
+//			pc2.row_step = pcl_pc2.row_step;
+//			pc2.data = pcl_pc2.data;
+//			
+//			
+//			new_lcm.publish("DRAKE_POINTCLOUD_TEST", &pc2);
 
 			
 
 			// pcl::io::savePCDFileASCII ("test_pcd.pcd", point_cloud);
 			// printf("Saved!\n");
-
-			//TODO: Convert the pcl point cloud to PointCloud2 LCM message type
 			
 		}
 		else {
-			sl::sleep_ms(1);		
+			sl::sleep_ms(1);	
 		}
 	}
 }

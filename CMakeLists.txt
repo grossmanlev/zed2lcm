@@ -36,7 +36,7 @@ link_directories(${CUDA_LIBRARY_DIRS})
 
 include_directories(bot_core)
 
-add_executable(zed2lcm zed2lcm.cpp bot_core/pointcloud2_t.hpp bot_core/pointfield_t.hpp)
+add_executable(zed2lcm zed2lcm.cpp bot_core/pointcloud2_t.hpp bot_core/pointfield_t.hpp bot_core/pointcloud_t.hpp)
 add_definitions(-std=c++11 -g -O3)
 target_link_libraries(zed2lcm 
 	${PCL_LIBRARIES}
@@ -45,6 +45,18 @@ target_link_libraries(zed2lcm
 	${CUDA_CUDART_LIBRARY} 
 	${CUDA_NPP_LIBRARIES_ZED}
 	lcm)
+	
+add_executable(listener listener.cpp bot_core/pointcloud2_t.hpp bot_core/pointfield_t.hpp bot_core/pointcloud_t.hpp)
+add_definitions(-std=c++11 -g -O3)
+target_link_libraries(listener 
+	${PCL_LIBRARIES}
+	${ZED_LIBRARIES}
+	${CUDA_CUDA_LIBRARY} 
+	${CUDA_CUDART_LIBRARY} 
+	${CUDA_NPP_LIBRARIES_ZED}
+	lcm)
+	
+
 
 add_executable(cloud_viewer cloud_viewer.cpp)
 target_link_libraries(cloud_viewer ${PCL_LIBRARIES})

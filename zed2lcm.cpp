@@ -111,7 +111,8 @@ void startZED() {
 }
 
 void run() {
-	lcm::LCM new_lcm;
+	lcm::LCM new_lcm("udpm://239.255.76.67:7667?ttl=1");
+	//lcm::LCM new_lcm;
 	if(!new_lcm.good())
 		return;	
 	while(!quit) {

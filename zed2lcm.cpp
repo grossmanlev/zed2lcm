@@ -31,11 +31,6 @@ int main (int argc, char** argv)
 {
 	if(!mlcm.good())
 		return 1;
-	
-	bot_core::pointcloud2_t my_data;
-	my_data.height = 640;
-	my_data.width = 480;
-
 
 	Camera zedl;
     InitParameters init_params;
@@ -49,13 +44,13 @@ int main (int argc, char** argv)
         exit(-1);
 	}
 
-	width = (int) zed.getResolution().width / 2;
-	height = (int) zed.getResolution().height / 2;
+	width = (int) zed.getResolution().width / 10;
+	height = (int) zed.getResolution().height / 10;
 
 	// Start the camera
 	startZED();
 
-
+	printf("%d, %d\n", width, height);
 
     //printf("Nothing happening...\n");
 
@@ -111,7 +106,7 @@ void startZED() {
 }
 
 void run() {
-	lcm::LCM new_lcm;
+	lcm::LCM new_lcm("udpm://239.255.76.67:7667?ttl=1");
 	if(!new_lcm.good())
 		return;	
 	while(!quit) {
@@ -140,11 +135,12 @@ void run() {
 				out.channels.push_back(channels);	
 			}
 			out.n_points = out.points.size();
+			printf("%d\n", out.n_points);
 			out.n_channels = 0;
 			new_lcm.publish("DRAKE_POINTCLOUD_TEST", &out);
 			printf("Published\n");
 	
-			
+			sl::sleep_ms(100);
 			
 			
 			//pcl::PCLPointCloud2 pcl_pc2

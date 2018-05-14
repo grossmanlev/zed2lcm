@@ -56,7 +56,15 @@ target_link_libraries(listener
 	${CUDA_NPP_LIBRARIES_ZED}
 	lcm)
 	
-
+add_executable(spatial_map spatial_map.cpp)
+add_definitions(-std=c++11 -g -O3)
+target_link_libraries(spatial_map 
+	${PCL_LIBRARIES}
+	${ZED_LIBRARIES}
+	${CUDA_CUDA_LIBRARY} 
+	${CUDA_CUDART_LIBRARY} 
+	${CUDA_NPP_LIBRARIES_ZED}
+	lcm)
 
 add_executable(cloud_viewer cloud_viewer.cpp)
 target_link_libraries(cloud_viewer ${PCL_LIBRARIES})

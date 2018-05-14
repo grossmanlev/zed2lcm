@@ -21,7 +21,7 @@ class Handler
 
 int main (int argc, char const* argv[])
 {
-	lcm::LCM lcm_sub;
+	lcm::LCM lcm_sub("udpm://239.255.76.67:7667?ttl=1");
 	if(!lcm_sub.good())
 		return 1;
 	
